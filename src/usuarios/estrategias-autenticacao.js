@@ -25,7 +25,7 @@ async function verificaSenha(senha,senhaHash){
     }
 }
 
-//criando o objeto para ser usado o nome do usuario como e-mail, senha e ter o tempo de sessão
+//criando o objeto para ser usado o nome do usuario como e-mail, senha e ter o tempo de sessão.
 passport.use(
     new LocalStrategy({
         usernameField:'email',
