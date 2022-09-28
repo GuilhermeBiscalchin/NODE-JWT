@@ -1,5 +1,24 @@
-const Usuario = require('./usuarios-modelo');
-const { InvalidArgumentError, InternalServerError } = require('../erros');
+const Usuario = require("./usuarios-modelo.js");
+const { InvalidArgumentError, InternalServerError } = require("../erros");
+
+//importando jsonwebtoken, para gerar o token para do usuário.
+const jwt = require("jsonwebtoken");
+
+//função para criar o tokenJWT, recebendo o usuario, criando o payload para qual informação é necessária para gerar o JWT.
+function criarJwtToken(usuario) {
+  const payload = {
+    id: usuario.id,
+  };
+
+  //Método Sign, do pacote jsonwebtoken, onde vai receber o token e assinar.
+  //Utilizar o 'crypto' nativo do Node para gerar senhas aleatórias.
+                                                                 //numero de caracteres para gerar a String     
+  //No console executar - node -e "console.log(require('crypto').randomBytes(256).toString('base64'))"
+  //Essa maneira para substituir a senha secreta - não recomendado colocar a String gerada aqui no código.
+  //Vai Substituir pela variável ambiente.
+  const token = jwt.sign(payload, process.env.CHAVE_JWT)
+  return token
+}
 
 module.exports = {
   adiciona: async (req, res) => {
@@ -9,8 +28,9 @@ module.exports = {
       const usuario = new Usuario({
         nome,
         email,
-        senha
       });
+
+      await usuario.adicionaSenha(senha);
 
       await usuario.adiciona();
 
@@ -26,6 +46,15 @@ module.exports = {
     }
   },
 
+  login: (req, res) => {
+
+    //antes de enviar a resposta do Login, criar o token, para chamar a função do JWT, recebendo o user, da autenticação.
+    const token = criarJwtToken(req.user)
+    //enviar o token, colocar no cabeçalho da Authorization,formulário padrão para envio do token.
+    res.set('Authorization',token)
+    res.status(204).send();
+  },
+
   lista: async (req, res) => {
     const usuarios = await Usuario.lista();
     res.json(usuarios);
@@ -39,5 +68,5 @@ module.exports = {
     } catch (erro) {
       res.status(500).json({ erro: erro });
     }
-  }
+  },
 };
